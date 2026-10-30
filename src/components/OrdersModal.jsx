@@ -1,17 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
-import { X, Package, CheckCircle2, Truck, RefreshCw, ShoppingCart, Clock } from 'lucide-react';
+import { FALLBACK_IMAGE } from '../data/mockData';
+import { X, Package, CheckCircle2, Truck, ShoppingCart } from 'lucide-react';
 
 export default function OrdersModal() {
   const { isOrdersOpen, setIsOrdersOpen, orders, addToCart, showToast } = useCart();
   const [trackingOrderId, setTrackingOrderId] = useState(null);
 
+  useEffect(() => {
+    if (isOrdersOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOrdersOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOrdersOpen) {
+        setIsOrdersOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOrdersOpen, setIsOrdersOpen]);
+
   if (!isOrdersOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fade-in">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+      onClick={() => setIsOrdersOpen(false)}
+    >
       <div 
-        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto relative text-gray-900 border border-gray-200"
+        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto relative text-gray-900 border border-gray-200 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         
@@ -24,6 +49,7 @@ export default function OrdersModal() {
           <button
             onClick={() => setIsOrdersOpen(false)}
             className="text-gray-400 hover:text-white transition p-1 cursor-pointer"
+            title="Close Orders (Esc)"
           >
             <X className="w-6 h-6" />
           </button>
@@ -38,7 +64,7 @@ export default function OrdersModal() {
           ) : (
             <div className="space-y-6">
               {orders.map((order) => (
-                <div key={order.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-xs">
+                <div key={order.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                   
                   {/* Order Top Ribbon */}
                   <div className="bg-gray-100/90 px-4 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-600">
@@ -59,8 +85,8 @@ export default function OrdersModal() {
                     <div>
                       <span className="block text-gray-500 uppercase text-[10px] font-bold">Order # {order.id}</span>
                       <button 
-                        onClick={() => showToast("Invoice downloaded to mock folder.")}
-                        className="text-amazon-blue_link hover:underline text-xs"
+                        onClick={() => showToast("Receipt & invoice downloaded.")}
+                        className="text-amazon-blue_link hover:underline text-xs cursor-pointer"
                       >
                         View invoice
                       </button>
@@ -77,7 +103,7 @@ export default function OrdersModal() {
 
                       <button
                         onClick={() => setTrackingOrderId(trackingOrderId === order.id ? null : order.id)}
-                        className="border border-gray-300 hover:bg-gray-50 text-xs font-semibold py-1.5 px-3 rounded shadow-xs transition"
+                        className="border border-gray-300 hover:bg-gray-50 text-xs font-semibold py-1.5 px-3 rounded shadow-sm transition cursor-pointer"
                       >
                         {trackingOrderId === order.id ? "Hide Tracking" : "Track Package"}
                       </button>
@@ -122,6 +148,7 @@ export default function OrdersModal() {
                             <img
                               src={item.image}
                               alt={item.title}
+                              onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                               className="w-16 h-16 object-contain rounded border border-gray-100 p-1"
                             />
                             <div>
@@ -143,7 +170,7 @@ export default function OrdersModal() {
                                 addToCart(item, 1);
                                 showToast(`Added "${item.title.slice(0, 24)}..." back to cart`);
                               }}
-                              className="bg-amazon-orange_button hover:bg-amazon-orange_hover text-amazon-dark font-medium text-xs py-1.5 px-3 rounded-full flex items-center gap-1.5 shadow-xs transition"
+                              className="bg-amazon-orange_button hover:bg-amazon-orange_hover text-amazon-dark font-medium text-xs py-1.5 px-3 rounded-full flex items-center gap-1.5 shadow-sm transition cursor-pointer"
                             >
                               <ShoppingCart className="w-3.5 h-3.5" />
                               <span>Buy it again</span>

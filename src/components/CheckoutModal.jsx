@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
-import { X, CheckCircle, ShieldCheck, CreditCard, Truck, Check, Loader2 } from 'lucide-react';
+import { FALLBACK_IMAGE } from '../data/mockData';
+import { X, ShieldCheck, CreditCard, Loader2 } from 'lucide-react';
 
 export default function CheckoutModal() {
   const { isCheckoutOpen, setIsCheckoutOpen, cart, cartSubtotal, cartCount, placeOrder } = useCart();
@@ -12,6 +13,27 @@ export default function CheckoutModal() {
   const [zip, setZip] = useState('94107');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [isPlacing, setIsPlacing] = useState(false);
+
+  useEffect(() => {
+    if (isCheckoutOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isCheckoutOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isCheckoutOpen && !isPlacing) {
+        setIsCheckoutOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCheckoutOpen, isPlacing, setIsCheckoutOpen]);
 
   if (!isCheckoutOpen) return null;
 
@@ -28,13 +50,16 @@ export default function CheckoutModal() {
         state,
         zip
       });
-    }, 1500);
+    }, 1200);
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fade-in">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+      onClick={() => { if (!isPlacing) setIsCheckoutOpen(false); }}
+    >
       <div 
-        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto relative text-gray-900 border border-gray-200"
+        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto relative text-gray-900 border border-gray-200 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         
@@ -45,8 +70,9 @@ export default function CheckoutModal() {
             <span className="text-gray-400 text-sm">| Checkout</span>
           </div>
           <button
-            onClick={() => setIsCheckoutOpen(false)}
-            className="text-gray-400 hover:text-white transition p-1"
+            onClick={() => { if (!isPlacing) setIsCheckoutOpen(false); }}
+            className="text-gray-400 hover:text-white transition p-1 cursor-pointer"
+            title="Cancel Checkout"
           >
             <X className="w-5 h-5" />
           </button>
@@ -192,7 +218,12 @@ export default function CheckoutModal() {
                   {cart.map((item) => (
                     <div key={item.id} className="py-2 flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2 max-w-xs truncate">
-                        <img src={item.image} alt={item.title} className="w-10 h-10 object-contain shrink-0" />
+                        <img 
+                          src={item.image} 
+                          alt={item.title} 
+                          onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
+                          className="w-10 h-10 object-contain shrink-0" 
+                        />
                         <span className="truncate">{item.title}</span>
                       </div>
                       <div className="font-medium text-gray-900 shrink-0">
@@ -207,7 +238,7 @@ export default function CheckoutModal() {
 
             {/* Right Summary: 5 Cols */}
             <div className="md:col-span-5">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 sticky top-20 shadow-xs">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 sticky top-20 shadow-sm">
                 
                 <button
                   type="submit"

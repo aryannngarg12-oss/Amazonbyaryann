@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { FALLBACK_IMAGE } from '../data/mockData';
 import { 
   X, 
   Star, 
@@ -16,13 +17,36 @@ export default function ProductDetailModal() {
   const { activeProductModal, setActiveProductModal, addToCart, setIsCheckoutOpen } = useCart();
   const [selectedQty, setSelectedQty] = useState(1);
   const [activeImage, setActiveImage] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+
+  useEffect(() => {
+    if (activeProductModal) {
+      setSelectedQty(1);
+      setActiveImage(null);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [activeProductModal]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && activeProductModal) {
+        setActiveProductModal(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeProductModal, setActiveProductModal]);
 
   if (!activeProductModal) return null;
 
   const product = activeProductModal;
   const currentImg = activeImage || product.image;
   const gallery = [product.image, ...(product.additionalImages || [])];
+  const [dollars, cents] = product.price.toFixed(2).split('.');
 
   const handleBuyNow = () => {
     addToCart(product, selectedQty);
@@ -44,15 +68,19 @@ export default function ProductDetailModal() {
   );
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fade-in">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+      onClick={() => setActiveProductModal(null)}
+    >
       <div 
-        className="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-y-auto relative text-gray-900 border border-gray-200"
+        className="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-y-auto relative text-gray-900 border border-gray-200 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={() => setActiveProductModal(null)}
           className="absolute right-4 top-4 p-2 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition z-20 cursor-pointer"
+          title="Close (Esc)"
         >
           <X className="w-6 h-6" />
         </button>
@@ -66,6 +94,7 @@ export default function ProductDetailModal() {
                 <img
                   src={currentImg}
                   alt={product.title}
+                  onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                   className="max-h-full max-w-full object-contain transition duration-300"
                 />
               </div>
@@ -77,11 +106,16 @@ export default function ProductDetailModal() {
                     <button
                       key={idx}
                       onClick={() => setActiveImage(img)}
-                      className={`w-14 h-14 border-2 rounded p-1 transition overflow-hidden ${
+                      className={`w-14 h-14 border-2 rounded p-1 transition overflow-hidden cursor-pointer ${
                         currentImg === img ? 'border-amazon-orange' : 'border-gray-200 hover:border-gray-400'
                       }`}
                     >
-                      <img src={img} alt="thumbnail" className="w-full h-full object-contain" />
+                      <img 
+                        src={img} 
+                        alt="thumbnail" 
+                        onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
+                        className="w-full h-full object-contain" 
+                      />
                     </button>
                   ))}
                 </div>
@@ -136,10 +170,10 @@ export default function ProductDetailModal() {
                   <div className="flex items-start">
                     <span className="text-sm font-bold leading-none">$</span>
                     <span className="text-3xl font-bold leading-none">
-                      {Math.floor(product.price)}
+                      {dollars}
                     </span>
                     <span className="text-sm font-bold leading-none">
-                      {(product.price % 1).toFixed(2).substring(2)}
+                      {cents}
                     </span>
                   </div>
                 </div>
@@ -172,7 +206,7 @@ export default function ProductDetailModal() {
             </div>
 
             {/* Right: Buy Box / Action Sidebar (3 cols) */}
-            <div className="md:col-span-3 bg-gray-50/80 border border-gray-200 rounded-lg p-5 flex flex-col justify-between shadow-xs">
+            <div className="md:col-span-3 bg-gray-50/80 border border-gray-200 rounded-lg p-5 flex flex-col justify-between shadow-sm">
               <div>
                 <div className="text-2xl font-bold text-gray-900 mb-2">
                   ${product.price.toFixed(2)}
@@ -205,7 +239,7 @@ export default function ProductDetailModal() {
                   <select
                     value={selectedQty}
                     onChange={(e) => setSelectedQty(Number(e.target.value))}
-                    className="w-full bg-white border border-gray-300 rounded-md py-1.5 px-3 text-xs focus:ring-2 focus:ring-amazon-yellow focus:outline-none"
+                    className="w-full bg-white border border-gray-300 rounded-md py-1.5 px-3 text-xs focus:ring-2 focus:ring-amazon-yellow focus:outline-none cursor-pointer"
                   >
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                       <option key={n} value={n}>

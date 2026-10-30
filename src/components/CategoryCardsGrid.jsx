@@ -1,5 +1,5 @@
 import React from 'react';
-import { FEATURED_COLLECTIONS } from '../data/mockData';
+import { FEATURED_COLLECTIONS, FALLBACK_IMAGE } from '../data/mockData';
 import { useCart } from '../context/CartContext';
 
 export default function CategoryCardsGrid() {
@@ -39,6 +39,7 @@ export default function CategoryCardsGrid() {
                       <img
                         src={item.image}
                         alt={item.name}
+                        onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         loading="lazy"
                       />

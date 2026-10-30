@@ -1,3 +1,5 @@
+export const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Cpath d='M160 180a20 20 0 1040 0 20 20 0 00-40 0zm-30 80l40-50 30 35 45-60 55 75H130z' fill='%23cbd5e1'/%3E%3Ctext x='200' y='300' font-family='sans-serif' font-size='14' fill='%2394a3b8' text-anchor='middle'%3EAmazon Product Image%3C/text%3E%3C/svg%3E";
+
 export const CATEGORIES = [
   "All",
   "Electronics",

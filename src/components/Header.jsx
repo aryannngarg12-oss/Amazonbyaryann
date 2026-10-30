@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { CATEGORIES } from '../data/mockData';
-import { Search, MapPin, ShoppingCart, ChevronDown, X, Package } from 'lucide-react';
+import { Search, MapPin, ShoppingCart, ChevronDown, X } from 'lucide-react';
 
 export default function Header() {
   const {
@@ -23,8 +23,22 @@ export default function Header() {
   const [cityInput, setCityInput] = useState(deliveryLocation.city);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isLocationModalOpen) {
+        setIsLocationModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLocationModalOpen]);
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    const el = document.getElementById('products-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleSaveLocation = (e) => {
@@ -38,13 +52,14 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-amazon-dark text-white sticky top-0 z-40 select-none">
+      <header className="bg-amazon-dark text-white sticky top-0 z-40 select-none shadow-md">
         <div className="max-w-[1580px] mx-auto px-4 py-2 flex items-center gap-3 md:gap-5">
           
           {/* Amazon Brand Logo */}
           <div 
             onClick={() => { setSelectedCategory('All'); setSearchQuery(''); }}
-            className="flex items-center gap-1 cursor-pointer p-1.5 border border-transparent hover:border-white rounded"
+            className="flex items-center gap-1 cursor-pointer p-1.5 border border-transparent hover:border-white rounded transition"
+            title="Amazon Home"
           >
             <div className="flex items-baseline font-black tracking-tight text-2xl">
               <span>amazon</span>
@@ -70,7 +85,7 @@ export default function Header() {
           {/* Search Box */}
           <form 
             onSubmit={handleSearchSubmit} 
-            className="flex-1 flex items-center h-10 rounded-md overflow-hidden focus-within:ring-3 focus-within:ring-amazon-orange transition"
+            className="flex-1 flex items-center h-10 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-amazon-orange transition"
           >
             {/* Category Dropdown */}
             <div className="relative hidden sm:flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-medium h-full px-3 border-r border-gray-300 cursor-pointer">
@@ -112,6 +127,7 @@ export default function Header() {
             <button
               type="submit"
               className="bg-amazon-yellow hover:bg-amazon-orange text-amazon-dark h-full px-4 flex items-center justify-center transition cursor-pointer"
+              title="Search"
             >
               <Search className="w-5 h-5 text-gray-900" />
             </button>
@@ -142,11 +158,11 @@ export default function Header() {
 
               {/* Account Flyout */}
               {isAccountDropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 w-64 bg-white text-gray-800 rounded-md shadow-2xl p-4 border border-gray-200 z-50 text-xs">
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white text-gray-800 rounded-md shadow-2xl p-4 border border-gray-200 z-50 text-xs animate-fade-in">
                   <div className="pb-3 border-b border-gray-200 text-center">
                     <button 
                       onClick={() => showToast("Signed in as Demo User!")}
-                      className="w-full bg-amazon-orange_button hover:bg-amazon-orange_hover py-1.5 px-4 rounded text-xs font-medium text-gray-900 shadow-sm"
+                      className="w-full bg-amazon-orange_button hover:bg-amazon-orange_hover py-1.5 px-4 rounded text-xs font-medium text-gray-900 shadow-sm cursor-pointer"
                     >
                       Sign In
                     </button>
@@ -185,7 +201,7 @@ export default function Header() {
                 <span className="font-bold text-sm text-gray-100 flex items-center gap-1">
                   & Orders
                   {orders.length > 0 && (
-                    <span className="bg-amazon-orange text-amazon-dark text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
+                    <span className="bg-amazon-orange text-amazon-dark text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
                       {orders.length}
                     </span>
                   )}
@@ -200,7 +216,7 @@ export default function Header() {
             >
               <div className="relative">
                 <ShoppingCart className="w-8 h-8 text-white group-hover:text-amazon-yellow transition" />
-                <span className="absolute -top-1 left-4 bg-amazon-orange text-amazon-dark font-extrabold text-xs px-1.5 py-0.2 rounded-full min-w-[20px] text-center">
+                <span className="absolute -top-1 left-4 bg-amazon-orange text-amazon-dark font-extrabold text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
                   {cartCount}
                 </span>
               </div>
@@ -215,8 +231,14 @@ export default function Header() {
 
       {/* Delivery Location Change Modal */}
       {isLocationModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-sm w-full p-6 text-gray-900 shadow-2xl relative animate-scale-in">
+        <div 
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setIsLocationModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-sm w-full p-6 text-gray-900 shadow-2xl relative animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button 
               onClick={() => setIsLocationModalOpen(false)}
               className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
@@ -255,13 +277,13 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => setIsLocationModalOpen(false)}
-                  className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded"
+                  className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-amazon-orange_button hover:bg-amazon-orange_hover font-medium px-4 py-1.5 text-sm rounded shadow-sm"
+                  className="bg-amazon-orange_button hover:bg-amazon-orange_hover font-medium px-4 py-1.5 text-sm rounded shadow-sm cursor-pointer"
                 >
                   Apply
                 </button>

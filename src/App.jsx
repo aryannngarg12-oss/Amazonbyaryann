@@ -13,17 +13,22 @@ import CheckoutModal from './components/CheckoutModal';
 import OrdersModal from './components/OrdersModal';
 import Toast from './components/Toast';
 import Footer from './components/Footer';
-import { SlidersHorizontal, ChevronDown, Sparkles, AlertCircle } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, AlertCircle, X } from 'lucide-react';
 
 function AmazonStore() {
   const {
     searchQuery,
+    setSearchQuery,
     selectedCategory,
+    setSelectedCategory,
     sortBy,
     setSortBy,
     filterPrimeOnly,
+    setFilterPrimeOnly,
     filterMinRating,
+    setFilterMinRating,
     priceRange,
+    setPriceRange,
     resetFilters
   } = useCart();
 
@@ -79,6 +84,14 @@ function AmazonStore() {
 
   const isBrowsingAll = !searchQuery.trim() && selectedCategory === 'All';
 
+  const hasActiveFilters = 
+    selectedCategory !== 'All' || 
+    searchQuery.trim() !== '' || 
+    filterPrimeOnly || 
+    filterMinRating > 0 || 
+    priceRange.min > 0 || 
+    priceRange.max < 1000;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#eaeded]">
       {/* Sticky Header & SubNav */}
@@ -86,7 +99,7 @@ function AmazonStore() {
       <SubNavbar />
 
       <main className="flex-1">
-        {/* Hero Carousel & Featured Cards only when browsing home */}
+        {/* Hero Carousel & Featured Cards only when browsing home with no active search/category */}
         {isBrowsingAll && (
           <>
             <HeroCarousel />
@@ -98,7 +111,7 @@ function AmazonStore() {
         <div id="products-section" className="max-w-[1580px] mx-auto px-4 py-6">
           
           {/* Results Bar / Sort Header */}
-          <div className="bg-white border border-gray-200 rounded-sm p-3.5 mb-5 flex flex-wrap items-center justify-between gap-4 shadow-2xs">
+          <div className="bg-white border border-gray-200 rounded-sm p-3.5 mb-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
             <div>
               <span className="text-sm font-semibold text-gray-900">
                 {filteredProducts.length} {filteredProducts.length === 1 ? 'result' : 'results'}
@@ -119,7 +132,7 @@ function AmazonStore() {
               {/* Mobile Filter Toggle */}
               <button
                 onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-                className="lg:hidden flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-xs font-semibold py-1.5 px-3 rounded border border-gray-300"
+                className="lg:hidden flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-xs font-semibold py-1.5 px-3 rounded border border-gray-300 cursor-pointer"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 <span>Filters</span>
@@ -145,6 +158,55 @@ function AmazonStore() {
               </div>
             </div>
           </div>
+
+          {/* Active Filter Chips */}
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2 mb-4 text-xs">
+              <span className="text-gray-500 font-medium">Active filters:</span>
+              
+              {selectedCategory !== 'All' && (
+                <span className="inline-flex items-center gap-1 bg-white border border-gray-300 px-2.5 py-1 rounded-full text-gray-800 shadow-2xs">
+                  Category: <strong>{selectedCategory}</strong>
+                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setSelectedCategory('All')} />
+                </span>
+              )}
+
+              {searchQuery.trim() !== '' && (
+                <span className="inline-flex items-center gap-1 bg-white border border-gray-300 px-2.5 py-1 rounded-full text-gray-800 shadow-2xs">
+                  Search: <strong>"{searchQuery}"</strong>
+                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setSearchQuery('')} />
+                </span>
+              )}
+
+              {filterPrimeOnly && (
+                <span className="inline-flex items-center gap-1 bg-white border border-gray-300 px-2.5 py-1 rounded-full text-gray-800 shadow-2xs">
+                  <strong className="text-[#00a8e1] italic">prime</strong> only
+                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setFilterPrimeOnly(false)} />
+                </span>
+              )}
+
+              {filterMinRating > 0 && (
+                <span className="inline-flex items-center gap-1 bg-white border border-gray-300 px-2.5 py-1 rounded-full text-gray-800 shadow-2xs">
+                  Rating: <strong>{filterMinRating}★ & Up</strong>
+                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setFilterMinRating(0)} />
+                </span>
+              )}
+
+              {(priceRange.min > 0 || priceRange.max < 1000) && (
+                <span className="inline-flex items-center gap-1 bg-white border border-gray-300 px-2.5 py-1 rounded-full text-gray-800 shadow-2xs">
+                  Price: <strong>${priceRange.min} - ${priceRange.max}</strong>
+                  <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => setPriceRange({ min: 0, max: 1000 })} />
+                </span>
+              )}
+
+              <button
+                onClick={resetFilters}
+                className="text-xs text-amazon-blue_link hover:underline hover:text-amazon-orange font-medium ml-1 cursor-pointer"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
 
           <div className="flex flex-col lg:flex-row gap-6">
             
@@ -173,7 +235,7 @@ function AmazonStore() {
                   </p>
                   <button
                     onClick={resetFilters}
-                    className="bg-amazon-orange_button hover:bg-amazon-orange_hover text-amazon-dark font-medium text-xs py-2 px-5 rounded-full shadow-sm"
+                    className="bg-amazon-orange_button hover:bg-amazon-orange_hover text-amazon-dark font-medium text-xs py-2 px-5 rounded-full shadow-sm cursor-pointer"
                   >
                     Reset all filters
                   </button>

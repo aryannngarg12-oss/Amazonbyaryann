@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { PRODUCTS, FALLBACK_IMAGE } from '../data/mockData';
 import { X, Trash2, Plus, Minus, ShoppingBag, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export default function CartDrawer() {
@@ -16,6 +17,27 @@ export default function CartDrawer() {
     setActiveProductModal
   } = useCart();
 
+  useEffect(() => {
+    if (isCartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isCartOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isCartOpen) {
+        setIsCartOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCartOpen, setIsCartOpen]);
+
   if (!isCartOpen) return null;
 
   const FREE_SHIPPING_THRESHOLD = 35.00;
@@ -27,8 +49,17 @@ export default function CartDrawer() {
     setIsCheckoutOpen(true);
   };
 
+  const handleViewProduct = (item) => {
+    const full = PRODUCTS.find((p) => p.id === item.id) || item;
+    setIsCartOpen(false);
+    setActiveProductModal(full);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end animate-fade-in">
+    <div 
+      className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm flex justify-end animate-fade-in"
+      onClick={() => setIsCartOpen(false)}
+    >
       <div 
         className="w-full max-w-md sm:max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between text-gray-900 border-l border-gray-200 animate-slide-left"
         onClick={(e) => e.stopPropagation()}
@@ -43,6 +74,7 @@ export default function CartDrawer() {
           <button
             onClick={() => setIsCartOpen(false)}
             className="p-1.5 text-gray-300 hover:text-white rounded-full hover:bg-white/10 transition cursor-pointer"
+            title="Close Cart (Esc)"
           >
             <X className="w-5 h-5" />
           </button>
@@ -81,7 +113,7 @@ export default function CartDrawer() {
               </p>
               <button
                 onClick={() => setIsCartOpen(false)}
-                className="bg-amazon-orange_button hover:bg-amazon-orange_hover text-amazon-dark font-medium text-xs py-2 px-6 rounded-full shadow-sm"
+                className="bg-amazon-orange_button hover:bg-amazon-orange_hover text-amazon-dark font-medium text-xs py-2 px-6 rounded-full shadow-sm cursor-pointer"
               >
                 Continue Shopping
               </button>
@@ -91,12 +123,13 @@ export default function CartDrawer() {
               <div key={item.id} className="py-4 flex gap-3 items-start">
                 {/* Thumbnail */}
                 <div 
-                  onClick={() => { setIsCartOpen(false); setActiveProductModal(item); }}
+                  onClick={() => handleViewProduct(item)}
                   className="w-20 h-20 bg-gray-50 border border-gray-100 rounded p-1 flex items-center justify-center shrink-0 cursor-pointer overflow-hidden"
                 >
                   <img
                     src={item.image}
                     alt={item.title}
+                    onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                     className="max-h-full max-w-full object-contain"
                   />
                 </div>
@@ -104,7 +137,7 @@ export default function CartDrawer() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <h4 
-                    onClick={() => { setIsCartOpen(false); setActiveProductModal(item); }}
+                    onClick={() => handleViewProduct(item)}
                     className="text-xs font-medium text-gray-900 line-clamp-2 hover:text-amazon-orange cursor-pointer leading-tight mb-1"
                   >
                     {item.title}
@@ -126,7 +159,7 @@ export default function CartDrawer() {
                     <div className="flex items-center border border-gray-300 rounded bg-gray-50 text-xs">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="p-1 hover:bg-gray-200 transition text-gray-700"
+                        className="p-1 hover:bg-gray-200 transition text-gray-700 cursor-pointer"
                         title="Decrease"
                       >
                         <Minus className="w-3.5 h-3.5" />
@@ -136,7 +169,7 @@ export default function CartDrawer() {
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="p-1 hover:bg-gray-200 transition text-gray-700"
+                        className="p-1 hover:bg-gray-200 transition text-gray-700 cursor-pointer"
                         title="Increase"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -145,7 +178,7 @@ export default function CartDrawer() {
 
                     <button
                       onClick={() => removeFromCart(item.id)}
-                      className="text-xs text-red-600 hover:text-red-800 flex items-center gap-1 font-medium transition"
+                      className="text-xs text-red-600 hover:text-red-800 flex items-center gap-1 font-medium transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>Delete</span>

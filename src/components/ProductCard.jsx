@@ -1,9 +1,12 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
-import { Star, Check, Eye } from 'lucide-react';
+import { FALLBACK_IMAGE } from '../data/mockData';
+import { Star, Eye } from 'lucide-react';
 
 export default function ProductCard({ product }) {
   const { addToCart, setActiveProductModal } = useCart();
+
+  const [dollars, cents] = product.price.toFixed(2).split('.');
 
   // Helper to render stars
   const renderStars = (rating) => {
@@ -49,6 +52,7 @@ export default function ProductCard({ product }) {
           <img
             src={product.image}
             alt={product.title}
+            onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
             className="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300"
             loading="lazy"
           />
@@ -57,7 +61,7 @@ export default function ProductCard({ product }) {
         {/* Quick View Button */}
         <button
           onClick={() => setActiveProductModal(product)}
-          className="absolute bottom-2 bg-white/95 hover:bg-white text-gray-800 text-xs font-semibold py-1.5 px-3 rounded shadow-md border border-gray-300 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition duration-200"
+          className="absolute bottom-2 bg-white/95 hover:bg-white text-gray-800 text-xs font-semibold py-1.5 px-3 rounded shadow-md border border-gray-300 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition duration-200 cursor-pointer"
         >
           <Eye className="w-3.5 h-3.5" />
           <span>Quick look</span>
@@ -108,10 +112,10 @@ export default function ProductCard({ product }) {
           <div className="flex items-start">
             <span className="text-xs font-bold leading-none">$</span>
             <span className="text-xl font-bold leading-none">
-              {Math.floor(product.price)}
+              {dollars}
             </span>
             <span className="text-xs font-bold leading-none">
-              {(product.price % 1).toFixed(2).substring(2)}
+              {cents}
             </span>
           </div>
           {product.originalPrice && product.originalPrice > product.price && (
@@ -124,7 +128,7 @@ export default function ProductCard({ product }) {
         {/* Prime & Delivery Info */}
         <div className="space-y-0.5 text-xs text-gray-700 mb-3">
           {product.prime && (
-            <div className="flex items-center gap-1 text-[#00a8e1] font-black text-sm">
+            <div className="flex items-center gap-1 text-[#00a8e1] font-black text-sm italic">
               <span>prime</span>
             </div>
           )}
